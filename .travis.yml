@@ -5,4 +5,5 @@
 #   https://github.com/craigcitro/r-travis/wiki
 
 language: r
+sudo: required
 bioc_required: true
