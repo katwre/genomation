@@ -1,6 +1,6 @@
 # genomation: convenience functions for visualing and summarizing genomic intervals
 
-Status [![Build Status](https://api.travis-ci.org/katwregenomation.svg?branch=master)](https://travis-ci.org/katwre/genomation)
+Status [![Build Status](https://api.travis-ci.org/katwre/genomation.svg?branch=master)](https://travis-ci.org/katwre/genomation)
 
 This package is a collection of functions for simplfiying common tasks in genomic feature
 analysis. It provides functions for reading BED and GFF files as GRanges objects, summarizing genomic features over predefined windows so users can make average enrichment of features over defined regions or produce heatmaps. It can also annotate given regions
