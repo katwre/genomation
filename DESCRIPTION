@@ -18,7 +18,9 @@ Encoding: latin1
 URL: http://bioinformatics.mdc-berlin.de/genomation/
 BugReports: https://github.com/BIMSBbioinfo/genomation/issues
 Depends:
-    R (>= 3.0.0),grid
+    methods,
+    R (>= 3.0.0),
+    grid
 Imports:
 	data.table,
   GenomeInfoDb,
@@ -29,7 +31,6 @@ Imports:
   impute,
   IRanges,
   matrixStats,
-	methods,
   parallel,
   plotrix,
   plyr,
