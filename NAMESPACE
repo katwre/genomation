@@ -3,8 +3,12 @@ import(Biostrings)
 import(BSgenome)
 import(GenomeInfoDb)
 import(GenomicRanges)
+import(IRanges) 
+# order of imports matters to get rid of warnings
+# for arbind and crbind
+# replacing previous import ‘IRanges::arbind’ by 
+# ‘SummarizedExperiment::arbind’ when loading ‘GenomicAlignments’
 import(GenomicAlignments)
-import(IRanges)
 import(Rsamtools)
 import(S4Vectors)
 import(ggplot2)
@@ -12,7 +16,6 @@ import(grid)
 import(gridBase)
 import(impute)
 importMethodsFrom("rtracklayer", import)
-
 
 #importMethodsFrom("GenomicRanges",elementMetadata,countOverlaps,findOverlaps, seqnames, seqlengths, strand,"strand<-")
 
@@ -27,9 +30,9 @@ importMethodsFrom("rtracklayer", import)
 
 #importMethodsFrom("IRanges",nearest,as.data.frame,values,length,elementNROWS,width,start,end)
 
-importFrom("data.table",data.table,dcast)
+importFrom("data.table",data.table)
 importFrom("data.table", rbindlist)
-importFrom("graphics", "axis", "barplot", "image", "legend", "lines",
+importFrom("graphics", "axis", "barplot", "legend", "lines",
              "par", "pie", "plot", "plot.new", "plot.window", "polygon",
              "text")
 importFrom("grDevices", "colorRamp", "hcl", "rainbow", "rgb")
@@ -48,6 +51,14 @@ importFrom("seqPattern", getPatternOccurrenceList)
 importFrom("stats", "dist", "hclust", "pnorm", "runif")
 importFrom("utils", "download.file", "read.table", "unzip")
 importFrom("Rcpp", sourceCpp)
+# if image function is not defined as from graphics
+# then it tries to load Matrix::image
+importFrom("graphics", image) 
+# added to get rid of warnings like
+# Warning: replacing previous import ‘IRanges::arbind’ by
+# ‘SummarizedExperiment::arbind’ when loading ‘GenomicAlignments’
+importFrom("IRanges", arbind)
+importFrom("IRanges", acbind)
 
 
 exportClasses(AnnotationByFeature)
@@ -57,7 +68,6 @@ exportClasses(ScoreMatrix)
 exportClasses(ScoreMatrixList)
 
 exportMethods(annotateWithFeature)
-exportMethods(annotateWithFeatures)
 exportMethods(annotateWithFeatureFlank)
 exportMethods(annotateWithGeneParts)
 exportMethods(binMatrix)
@@ -77,9 +87,8 @@ export(intersectScoreMatrixList)
 export(multiHeatMatrix)
 exportMethods(patternMatrix)
 export(plotMeta)
-export(plotGeneAnnotation)
-export(heatTargetAnnotation)
-export(plotTargetAnnotation)
+exportMethods(plotGeneAnnotation)
+exportMethods(plotTargetAnnotation)
 exportMethods(orderBy)
 exportMethods(randomizeFeature)
 export(readGeneric)
