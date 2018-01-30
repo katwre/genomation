@@ -2,18 +2,114 @@
 # S3 functions
 #######################################
 
+#' binner function
+#'
+#'given a vector and length smooths the vector to a given size
+# the function is not safe - check for the window length before
+#'
+#' @param start start position
+#' @param end end position
+#' @param nbins number of bins
+#' @keywords internal
+binner=function(start,end,nbins){
+  
+  if(! is.numeric(start))
+    stop('start needs to be class numeric')
+  if(! is.numeric(end))
+    stop('end needs to be class numeric')
+  if(! is.numeric(nbins))
+    stop('nbins needs to be class numeric')
+  
+  x = unique(seq(from = start, to = end,length.out=nbins + 1 ) )
+  my.start = ceiling(x)[-length(x)]
+  my.end = floor(x)[-1]
+  
+  return( t(cbind(my.start, my.end) )  )
+}
+
 # ---------------------------------------------------------------------------- #
-### gets colors for a factor variable
+#' getColors function
+#'
+#'gets colors for a factor variable
+#'
+#' @param n n
+#' @keywords internal
 getColors = function(n) {
   
   black = "#000000"
   c(black,hcl(h=seq(0,(n-2)/(n-1),length=n-1)*360,c=100,l=65,fixup=TRUE))
 }
 
+#' file.ext function
+#'
+#' Extract file extension from file path
+#'
+#' @param x file 
+#' @keywords internal
+file.ext = function(x) {
+  pos <- regexpr("\\.([[:alnum:]]+)$", x)
+  ifelse(pos > -1L, substring(x, pos + 1L), "")
+}
+
+#' target.type function
+#'
+#'Check if a target file is in bam and bigWig formats
+#'by looking at the file extension
+#'
+#' @param target target file
+#' @param type type name
+#' @keywords internal
+target.type = function(target, type=""){
+  
+  if(length(target)!=1){
+    stop("target has to be a single character")
+  }
+  bw.exts = c("bw","bigWig","bigwig","BigWig", "BIGWIG", "BW")
+  bam.exts = c("bam", "BAM", "Bam")
+  if(type=="" | length(type)!=1 | nchar(type)==0 | is.null(type))
+      stop(paste0('set argument type to "auto", "bam" or "bigWig"\n'))
+  
+  if(type=="auto"){
+    # automatically recognize type of target files
+    # by looking at the file extensions
+    exts = file.ext(target)  
+    if( any(!(exts %in% c(bam.exts, bw.exts))) )
+      stop(paste0('currently supported formats are bam and bigWig\n'))
+    if( exts %in% bw.exts)  return("bigWig") 
+    if( exts %in% bam.exts) return("bam")
+    
+  }else if(type %in% c(bam.exts, bw.exts)){
+    # if type is BAM or bigWig
+    bam.grepl = paste0((paste0(bam.exts, collapse="$|")), "$")
+    bw.grepl = paste0((paste0(bw.exts, collapse="$|")), "$")
+    if(type %in% bam.exts){
+      if(!grepl(bam.grepl, target)){
+        warning(paste0('you have set type="',type,
+                       '", but the designated file does not have ',
+                       'an extension of BAM file (.bam)'))}
+      return("bam")
+    }
+    if(type %in% bw.exts){
+      if(!grepl(bw.grepl, target)){
+        warning(paste0('you have set type="',type,
+                       '", but the designated file does not have',
+                       ' an extension of biWig file (.bw or .bigWig)')) }
+      return("bigWig")
+    }
+  }
+}
+
 # ---------------------------------------------------------------------------- #
-# removes ranges that fell of the rle object
-# does not check for the correspondence of the chromosome names - always 
-# check before using this function
+
+#' constrainRanges function
+#' 
+#' removes ranges that fell of the rle object
+#' does not check for the correspondence of the chromosome names - always 
+#' check before using this function
+#'
+#' @param target target file
+#' @param windows windows
+#' @keywords internal
 constrainRanges = function(target, windows){
   
   checkClass(target, c('SimpleRleList','RleList','CompressedRleList'))
@@ -38,7 +134,15 @@ constrainRanges = function(target, windows){
 
 
 # ---------------------------------------------------------------------------- #
-# check whether the x object corresponds to the given class
+
+#' checkClass function
+#' 
+#' check whether the x object corresponds to the given class
+#'
+#' @param x object
+#' @param class.name class name
+#' @param var.name uses x object
+#' @keywords internal
 checkClass = function(x, class.name, var.name = deparse(substitute(x))){
   
   fun.name = match.call(call=sys.call(sys.parent(n=1)))[[1]]
@@ -50,6 +154,10 @@ checkClass = function(x, class.name, var.name = deparse(substitute(x))){
                '\n', sep=''))
 }
 
+#' galpTo2Ranges function
+#'
+#' @param x object
+#' @keywords internal
 galpTo2Ranges <- function(x)
 {
   gr1 <- granges(first(x))
@@ -60,8 +168,22 @@ galpTo2Ranges <- function(x)
 }
 
 # ---------------------------------------------------------------------------- #
-# given a big bam path reads the big wig file into a RleList
-# to be used by ScoreMatrix:char,GRanges
+#' readBam function
+#' 
+#' given a big bam path reads the big wig file into a RleList
+#' to be used by ScoreMatrix:char,GRanges
+#'
+#' @param target target object
+#' @param windows windows
+#' @param rpm logical
+#' @param unique logical
+#' @param extend numeric
+#' @param param ScanBamParam object 
+#' @param paired.end llogical
+#' @param library.size numeric
+#' @param ... additional parameters
+#' @keywords internal
+
 readBam = function(target, windows, rpm=FALSE,
                    unique=FALSE, extend=0, param=NULL, 
                    paired.end=FALSE, library.size=NULL, ...){
@@ -111,7 +233,7 @@ readBam = function(target, windows, rpm=FALSE,
   if(rpm){
     message('Normalizing to rpm ...')
     if(is.null(library.size)){
-      total = 1e6/sum(idxStats(normalizePath(target))[3])
+      total = 1e6/sum(idxstatsBam(normalizePath(target))[3])
     }else{
       total = 1e6/library.size
     }
@@ -123,8 +245,15 @@ readBam = function(target, windows, rpm=FALSE,
 }
 
 # ---------------------------------------------------------------------------- #
-# given a big wig path reads the big wig file into a RleList
-# to be used by ScoreMatrix:char,GRanges
+#' readBigWig function
+#' 
+#' given a big wig path reads the big wig file into a RleList
+#' to be used by ScoreMatrix:char,GRanges
+#'
+#' @param target target object
+#' @param windows windows
+#' @param ... additional parameters
+#' @keywords internal
 readBigWig = function(target, windows=NULL, ...){
   
   
@@ -185,8 +314,9 @@ readBigWig = function(target, windows=NULL, ...){
 #'                   NA in the returned object. This useful for situations where
 #'                   you can not have coverage all over the genome, such as CpG 
 #'                   methylation values.
-#' @param type if target is a character vector of file paths, then type designates
-#'              the type of the corresponding files (bam or bigWig)
+#' @param type  (Default:"auto")
+#'              if target is a character vector of file paths, then type designates
+#'              the type of the corresponding files (bam or bigWig).
 #' @param rpm boolean telling whether to normalize the coverage to per milion 
 #'                    reads. FALSE by default. See \code{library.size}.
 #' @param unique boolean which tells the function to remove duplicated reads 
@@ -199,8 +329,8 @@ readBigWig = function(target, windows=NULL, ...){
 #' @param library.size numeric indicating total number of mapped reads in a BAM file
 #'                            (\code{rpm} has to be set to TRUE).
 #'                            If is not given (default: NULL) then library size 
-#'                            is calculated using a Samtools idxstats like function:
-#'                            sum(idxStats(target)$mapped).
+#'                            is calculated using the Rsamtools idxstatsBam function:
+#'                            sum(idxstatsBam(target)$mapped).
 #' 
 #' @note
 #' We assume that a paired-end BAM file contains reads with unique ids and we remove 
@@ -249,7 +379,7 @@ setGeneric("ScoreMatrix",
                     strand.aware=FALSE,
                     weight.col=NULL,
                     is.noCovNA=FALSE,
-                    type='',
+                    type="auto",
                     rpm=FALSE, 
                     unique=FALSE, 
                     extend=0,
@@ -268,15 +398,23 @@ setMethod("ScoreMatrix",signature("RleList","GRanges"),
             #check if all windows are equal length
             if( length(unique(width(windows))) >1 ){
               stop("width of 'windows' are not equal, provide 'windows' with equal widths")
-            }     
+            }  
+            # check if windows have width > 1
+            if( any(width(windows)==1) ){
+              stop("provide 'windows' with widths greater than 1")
+            } 
             
             # set a uniq id for the GRanges
+            windows.len=length(windows)
             windows = constrainRanges(target, windows)
-            
+            if(length(windows)!=windows.len){
+              warning(paste0(windows.len-length(windows),
+                             " windows fall off the target"))
+            }
             
             # fetches the windows and the scores
             chrs = sort(intersect(names(target), as.character(unique(seqnames(windows)))))
-            myViews=Views(target[chrs],as(windows,"RangesList")[chrs]) # get subsets of RleList
+            myViews=Views(target[chrs],as(windows,"IntegerRangesList")[chrs]) # get subsets of RleList
             
             #  get a list of matrices from Views object
             #  operation below lists a matrix for each chromosome
@@ -285,7 +423,7 @@ setMethod("ScoreMatrix",signature("RleList","GRanges"),
             # combine the matrices from chromosomes 
             mat = do.call("rbind",mat)   
             
-            # get the ranks of windows, when things are reorganized by as(...,"RangesList")
+            # get the ranks of windows, when things are reorganized by as(...,"IntegerRangesList")
             r.list=split(mcols(windows)[,"X_rank"], as.vector(seqnames(windows))  )
             r.list=r.list[order(names(r.list))]
             ranks=do.call("c",r.list)
@@ -327,7 +465,7 @@ setMethod("ScoreMatrix",signature("GRanges","GRanges"),
               target.rle=coverage(target)
             }else{
               if(! weight.col %in% names(mcols(target)) ){
-                stop("provided column 'weight.col' does not exist in tartget\n")
+                stop("provided column 'weight.col' does not exist in target\n")
               }
               if(is.noCovNA)
               { # adding 1 to figure out NA columns later
@@ -341,7 +479,6 @@ setMethod("ScoreMatrix",signature("GRanges","GRanges"),
               
             }
             
-            
             # call ScoreMatrix function
             ScoreMatrix(target.rle,windows,strand.aware)
           })
@@ -349,43 +486,59 @@ setMethod("ScoreMatrix",signature("GRanges","GRanges"),
 # ---------------------------------------------------------------------------- #
 #' @aliases ScoreMatrix,character,GRanges-method
 #' @rdname ScoreMatrix-methods
-#' @usage \\S4method{ScoreMatrix}{character,GRanges}(target, windows, strand.aware, 
-#'                                                   type='', rpm=FALSE,
+#' @usage \\S4method{ScoreMatrix}{character,GRanges}(target, windows, strand.aware,
+#'                                                   weight.col=NULL,is.noCovNA=FALSE, 
+#'                                                   type='auto', rpm=FALSE,
 #'                                                   unique=FALSE, extend=0, param=NULL, 
 #'                                                   bam.paired.end=FALSE,
 #'                                                   library.size=NULL)
 setMethod("ScoreMatrix",signature("character","GRanges"),
-          function(target,windows, strand.aware, type='', 
-                   rpm=FALSE, unique=FALSE, extend=0, 
-                   param=NULL, bam.paired.end=FALSE,
+          function(target,windows, strand.aware,
+                   weight.col=NULL,is.noCovNA=FALSE,
+                   type='auto',rpm=FALSE, 
+                   unique=FALSE, extend=0,param=NULL,
+                   bam.paired.end=FALSE,
                    library.size=NULL){
             
             if(!file.exists(target)){
               stop("Indicated 'target' file does not exist\n")
             }
             
-            fm = c('bam','bigWig')
-            if(!type %in% fm){
-	      if(type==""){
-		stop(paste0('set argument type to "bam" or "BigWig"\n'))
-	      }
-	      stop('currently supported formats are bam and BigWig\n')
-            }
-              
-            if(type == 'bam' & !grepl('bam$',target))
-              warning('you have set type="bam", but the designated file does not have .bam extension')
-            if(type == 'bigWig' & !grepl('bw$|bigWig$|bigwig$',target))
-              warning('you have set type="bigWig", but the designated file does not have .bw extension')
+            type = target.type(target, type)
             
-            if(type == 'bam')
+            if( type=="bigWig" & rpm==TRUE)
+              warning("rpm=TRUE is not supported for type='bigWig'")
+
+            if(type == 'bam'){
+              
               covs = readBam(target, windows, rpm=rpm, unique=unique, 
                              extend=extend, param=param, 
                              paired.end=bam.paired.end, library.size)
-            if(type == 'bigWig')
-              covs = readBigWig(target=target, windows=windows)            
-            
-            #get coverage vectors
-            ScoreMatrix(covs,windows,strand.aware)
+              #get coverage vectors
+              return(ScoreMatrix(covs,windows,strand.aware))
+            }
+              
+            if(type == 'bigWig'){
+              if(is.noCovNA==FALSE){
+                
+                covs = readBigWig(target=target, windows=windows)
+                ScoreMatrix(covs,windows,strand.aware)
+                
+              }else{
+                
+                if(is.null(windows)){
+                  bw = import(target)
+                }else{
+                  bw = import(target, which=windows)
+                }
+                if(length(bw) == 0)
+                  stop('There are no ranges selected')
+                
+                return(ScoreMatrix(bw, windows, strand.aware, 
+                                   weight.col=weight.col, 
+                                   is.noCovNA=is.noCovNA))
+              }
+            }           
           })
 
 

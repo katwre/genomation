@@ -3,12 +3,8 @@ import(Biostrings)
 import(BSgenome)
 import(GenomeInfoDb)
 import(GenomicRanges)
-import(IRanges) 
-# order of imports matters to get rid of warnings
-# for arbind and crbind
-# replacing previous import ‘IRanges::arbind’ by 
-# ‘SummarizedExperiment::arbind’ when loading ‘GenomicAlignments’
 import(GenomicAlignments)
+import(IRanges)
 import(Rsamtools)
 import(S4Vectors)
 import(ggplot2)
@@ -17,22 +13,23 @@ import(gridBase)
 import(impute)
 importMethodsFrom("rtracklayer", import)
 
+
 #importMethodsFrom("GenomicRanges",elementMetadata,countOverlaps,findOverlaps, seqnames, seqlengths, strand,"strand<-")
 
 #importClassesFrom("GenomicRanges",GRanges,GRangesList)
 
 #importClassesFrom("IRanges", RangedData, RangedDataList, DataTable,
-#                  Annotated, Vector, List, DataTableORNULL, characterORNULL,
+#                  Annotated, Vector, List, DataTable_OR_NULL, character_OR_NULL,
 #                  RangedSelection, SimpleList, DataFrame,SimpleRleList,RleList,SimpleAtomicList,AtomicList,RleViews,RleViewsList)
 
 #importFrom("IRanges", DataFrame, IRanges, RangedDataList, RangedData,
-#           RangesList, Rle,matchMatrix,findOverlaps, RangedSelection,ranges,countOverlaps,subsetByOverlaps,elementMetadata,"elementMetadata<-",Views,viewApply,RleViewsList)
+#           IntegerRangesList, Rle,matchMatrix,findOverlaps, RangedSelection,ranges,countOverlaps,subsetByOverlaps,elementMetadata,"elementMetadata<-",Views,viewApply,RleViewsList)
 
 #importMethodsFrom("IRanges",nearest,as.data.frame,values,length,elementNROWS,width,start,end)
 
-importFrom("data.table",data.table)
+importFrom("data.table",data.table,dcast)
 importFrom("data.table", rbindlist)
-importFrom("graphics", "axis", "barplot", "legend", "lines",
+importFrom("graphics", "axis", "barplot", "image", "legend", "lines",
              "par", "pie", "plot", "plot.new", "plot.window", "polygon",
              "text")
 importFrom("grDevices", "colorRamp", "hcl", "rainbow", "rgb")
@@ -50,16 +47,7 @@ importFrom("seqPattern", motifScanScores)
 importFrom("seqPattern", getPatternOccurrenceList)
 importFrom("stats", "dist", "hclust", "pnorm", "runif")
 importFrom("utils", "download.file", "read.table", "unzip")
-importFrom("Rcpp", sourceCpp)
-# if image function is not defined as from graphics
-# then it tries to load Matrix::image
-importFrom("graphics", image) 
-# added to get rid of warnings like
-# Warning: replacing previous import ‘IRanges::arbind’ by
-# ‘SummarizedExperiment::arbind’ when loading ‘GenomicAlignments’
-importFrom("IRanges", arbind)
-importFrom("IRanges", acbind)
-
+importFrom(Rcpp, sourceCpp)
 
 exportClasses(AnnotationByFeature)
 exportClasses(AnnotationByGeneParts)
@@ -68,12 +56,14 @@ exportClasses(ScoreMatrix)
 exportClasses(ScoreMatrixList)
 
 exportMethods(annotateWithFeature)
+exportMethods(annotateWithFeatures)
 exportMethods(annotateWithFeatureFlank)
 exportMethods(annotateWithGeneParts)
 exportMethods(binMatrix)
 exportMethods(convertBedDf)
 exportMethods(convertBed2Exons)
 exportMethods(convertBed2Introns)
+exportMethods(enrichmentMatrix)
 exportMethods(findFeatureComb)
 exportMethods(getAssociationWithTSS)
 exportMethods(getFeatsWithTargetsStats)
@@ -87,8 +77,9 @@ export(intersectScoreMatrixList)
 export(multiHeatMatrix)
 exportMethods(patternMatrix)
 export(plotMeta)
-exportMethods(plotGeneAnnotation)
-exportMethods(plotTargetAnnotation)
+export(plotGeneAnnotation)
+export(heatTargetAnnotation)
+export(plotTargetAnnotation)
 exportMethods(orderBy)
 exportMethods(randomizeFeature)
 export(readGeneric)
@@ -101,9 +92,22 @@ exportMethods(ScoreMatrix)
 exportMethods(ScoreMatrixBin)
 exportMethods(scaleScoreMatrix)
 exportMethods(scaleScoreMatrixList)
+export(listSliceMean)
+export(listSliceMedian)
+export(listSliceMax)
+export(listSliceMin)
+export(listSliceSum)
+export(Mean_c)
+export(Median_c)
+export(Max_c)
+export(Min_c)
+export(Sum_c)
 
-export(gffToGRanges)
+export(gffToGRanges) 
 export(ScoreMatrixList)
-export(idxStats)
+
+S3method(c,ScoreMatrixList)
+S3method(c,ScoreMatrix)
 
 useDynLib(genomation)
+exportPattern("^[[:alpha:]]+")

@@ -6,35 +6,54 @@ test_ScoreMatrixBin_RleList_GRanges = function()
   # -----------------------------------------------#
   # usage
   # input RleList
-  rl = RleList(chr1 = Rle(rep(c(1,2,3), each=3)), chr2=Rle(rep(c(4,5,6), each=3)))
+  rl = RleList(chr1 = Rle(rep(c(1,2,3), each=4)), chr2=Rle(rep(c(4,5,6), each=4)))
   
   #1. test for proper workings
-  gr1 = GRanges(rep(c('chr1','chr2'), each=2), IRanges(c(1,5,1,5),c(3,7,3,7)), 
+  gr1 = GRanges(rep(c('chr1','chr2'), each=2), IRanges(c(1,6,1,6),c(4,9,4,9)), 
                 strand=c('+','-','+','-'))
-  m1 = matrix(c(1,1,1,2,2,3,4,4,4,5,5,6), ncol=3, byrow=T)
-  m1 = as(cbind(rowMeans(m1[,1:2]), rowMeans(m1[,2:3])),'ScoreMatrix')
+  m1 = matrix(c(1,1,1,1,2,2,2,3,4,4,4,4,5,5,5,6), ncol=4, byrow=T)
+  m1 = as(cbind(rowMeans(m1[,1:2]), rowMeans(m1[,3:4])),'ScoreMatrix')
   rownames(m1) = 1:4
   s1 = ScoreMatrixBin(rl, gr1, bin.num=2)
   checkEquals(s1, m1)
   
+  #1.1 check for name dropping
+  s1.1 = ScoreMatrixBin(rl, gr1, bin.num=1)
+  checkEquals(rownames(s1.1),as.character(1:4))
+  
+  
   #2. test for different bin.op
   for(fun in c('min', 'max', 'median')){
     message('testing:', fun)
-    m2 = matrix(c(1,1,1,2,2,3,4,4,4,5,5,6), ncol=3, byrow=T)
+    m2 = matrix(c(1,1,1,1,2,2,2,3,4,4,4,4,5,5,5,6), ncol=4, byrow=T)
     m2 = as(cbind(apply(m2[,1:2],1,match.fun(fun)), 
-                  apply(m2[,2:3],1,match.fun(fun))),'ScoreMatrix')
+                  apply(m2[,3:4],1,match.fun(fun))),'ScoreMatrix')
     rownames(m2) = 1:4
     s2 = ScoreMatrixBin(rl, gr1, bin.num=2, bin.op=fun)
     checkEquals(s2, m2)  
   }
   
   #3. test strand aware
-  m3 = matrix(c(1,1,1,2,2,3,4,4,4,5,5,6), ncol=3, byrow=T)
-  m3 = as(cbind(rowMeans(m3[,1:2]), rowMeans(m3[,2:3])),'ScoreMatrix')
+  m3 = matrix(c(1,1,1,1,2,2,2,3,4,4,4,4,5,5,5,6), ncol=4, byrow=T)
+  m3 = as(cbind(rowMeans(m3[,1:2]), rowMeans(m3[,3:4])),'ScoreMatrix')
   rownames(m3) = 1:4
   m3[c(2,4),] = m3[c(2,4),2:1]
   s3 = ScoreMatrixBin(rl, gr1, bin.num=2, strand.aware=T)
   checkEquals(s3, m3)
+  
+  #4.A bin.num > 1 and dropping chromosomes
+  t4 = GRanges(rep(c('chr1','chr2'), times=c(3,2)), IRanges(c(seq(1,20,4)), width=3))
+  t4$score = 1
+  w4 = GRanges(rep(c('chr3','chr2'), each=2), IRanges(rep(c(13,17), times=2), width=3))
+  s4 = suppressWarnings(ScoreMatrixBin(t4, w4, bin.num = 2,type = "bigWig"))
+  checkEquals(as.numeric(rownames(as.data.frame(s4))), c(3,4))
+  
+  #4.B bin.num = 1 and dropping chromosomes
+  t5 = GRanges(rep(c('chr1','chr2'), times=c(3,2)), IRanges(c(seq(1,20,4)), width=3))
+  t5$score = 1
+  w5 = GRanges(rep(c('chr3','chr2'), each=2), IRanges(rep(c(13,17), times=2), width=3))
+  s5 = suppressWarnings(ScoreMatrixBin(t5, w5,bin.num = 1,type = "bigWig"))
+  checkEquals(as.numeric(rownames(as.data.frame(s5))), c(3,4))
   
   # -----------------------------------------------#
   # errors
@@ -60,7 +79,7 @@ test_ScoreMatrixBin_GRanges_GRanges = function()
   # normal function works
   s1 = ScoreMatrixBin(target=target, windows=windows, bin.num=2)
   m1 = matrix(rep(c(1,2,3,3,3,2,3,3,3,2),times=2), ncol=5, byrow=T)
-  m1 = as(cbind(rowMeans(m1[,1:3]), rowMeans(m1[,3:5])), 'ScoreMatrix')
+  m1 = as(cbind(rowMeans(m1[,1:3]), rowMeans(m1[,4:5])), 'ScoreMatrix')
   rownames(m1) = 1:4
   checkEquals(s1,m1)
   
@@ -68,7 +87,7 @@ test_ScoreMatrixBin_GRanges_GRanges = function()
   s2 = ScoreMatrixBin(target=target, windows=windows,bin.num=2, weight.col='weight')
   m2 = matrix(rep(c(1,2,3,3,3,2,3,3,3,2),times=2), ncol=5, byrow=T)
   m2[3:4,] = m2[3:4,]*2
-  m2 = as(cbind(rowMeans(m2[,1:3]), rowMeans(m2[,3:5])), 'ScoreMatrix')
+  m2 = as(cbind(rowMeans(m2[,1:3]), rowMeans(m2[,4:5])), 'ScoreMatrix')
   rownames(m2) = 1:4
   checkEquals(s2,m2)  
   
@@ -76,8 +95,9 @@ test_ScoreMatrixBin_GRanges_GRanges = function()
   s3 = ScoreMatrixBin(target=target, windows=windows, bin.num=2, strand.aware=T)
   m3 = matrix(rep(c(1,2,3,3,3,2,3,3,3,2),times=2), ncol=5, byrow=T)
   rownames(m3) = 1:4
+  m3 = cbind(rowMeans(m3[,1:3]), rowMeans(m3[,4:5]))
   m3[c(1,3),] = rev(m3[c(1,3),])
-  m3 = as(cbind(rowMeans(m3[,1:3]), rowMeans(m3[,3:5])), 'ScoreMatrix')
+  m3 = as(m3, 'ScoreMatrix')
   rownames(m3) = 1:4
   checkEquals(s3,m3)
   
@@ -115,7 +135,7 @@ test_ScoreMatrixBin_character_GRanges = function()
   
   # bam file, rpm=TRUE
   s2 = ScoreMatrixBin(bam.file, windows,bin.num=2, type='bam', rpm=TRUE)
-  tot = 1e6/sum(idxStats(normalizePath(bam.file))$mapped)
+  tot = 1e6/sum(idxstatsBam(normalizePath(bam.file))$mapped)
   m2 = m1*tot
   checkEquals(s2, m2)
   
@@ -135,15 +155,29 @@ test_ScoreMatrixBin_character_GRanges = function()
   m5 = ScoreMatrixBin(resize(unique(target.paired.end), width=16), windows.paired.end)
   checkEquals(s5,m5)
   
-  #bigWig file - missing
+
+  if (.Platform$OS.type == "windows")
+       return()
+  
+
+  # bigWig file with is.noCovNA=TRUE and weight.col="score"
+  test_bw <- system.file("unitTests/test.bw", package = "genomation")
+  g = GRanges(seqnames=c("chr2","chr19", "chr19", "chr19"),
+              IRanges(start=c(1201, 1501, 2401, 2800), width=6),
+              strand='*')
+  s1 = ScoreMatrixBin(test_bw, g, strand.aware=FALSE, 
+                   weight.col="score",is.noCovNA=TRUE,
+                   type="bigWig", bin.num=2)
+  m1 = matrix(c(rep(0, 2), rep(0.25,2), rep(1,2), rep(NA,2)), 
+              nrow=4,  byrow = TRUE)
+  rownames(m1) = 1:4
+  m1 = as(m1, 'ScoreMatrix')
+  checkEquals(s1, m1)
   
   # -----------------------------------------------#
   # errors
   # error upon not specifying the file
   checkException(ScoreMatrixBin('',windows), silent=TRUE)
-  
-  # error upon not specifying the format
-  checkException(ScoreMatrixBin(bam.file, target), silent=TRUE)
 }
 
 # ---------------------------------------------------------------------------- #
@@ -165,3 +199,79 @@ test_that_ScoreMatrix_character_GRange_bigWig = function()
   m = as(m, 'ScoreMatrix')
   checkEquals(s, m)
 }
+
+# # ---------------------------------------------------------------------------- #
+# test for ScoreMatrixBin function
+test_ScoreMatrixBin_RleList_GRangesList = function()
+{
+  # usage
+  # target RleList, windows GRangesList
+  target = RleList('c1'= Rle(c(1,1,1,2,2,2,3,3,3)),
+                   'c2'= Rle(c(10,10,10,20,20,20,30,30,30)),
+                   'c3'= Rle(c(1,2,3,4,5,6,7,8,9)))
+  
+  gr1 = GRanges(rep('c1',each=3), IRanges(c(1, 4, 7),width=3), strand="-")
+  gr2 = GRanges(rep('c2',each=3), IRanges(c(1, 4, 7),width=3), strand="+")
+  gr3 = GRanges(rep('c3',each=3), IRanges(c(1, 4, 7),width=3), strand="-")
+  grl = GRangesList("transcript1" = gr1, "transcript2" = gr2, 'tr3'=gr3)
+  
+  s6 = ScoreMatrixBin(target, grl, bin.num=3)
+  m6 = matrix(c(1,2,3,10,20,30,2,5,8), ncol=3, byrow=T)
+  checkEquals(s6, as(m6, 'ScoreMatrix'))
+  
+  #2. test for different bin.op
+  s7 = ScoreMatrixBin(target, grl, bin.num=1, bin.op='min')
+  m7 = matrix(c(1,10,1), ncol=1, byrow=T)
+  checkEquals(s7, as(m7, 'ScoreMatrix'))
+  
+  s8 = ScoreMatrixBin(target, grl, bin.num=1, bin.op='max')
+  m8 = matrix(c(3,30,9), ncol=1, byrow=T)
+  checkEquals(s8, as(m8, 'ScoreMatrix'))
+  
+  #3. test strand aware
+  m9 = matrix(c(3,2,1,10,20,30,8,5,2), ncol=3, byrow=T)
+  s9 = ScoreMatrixBin(target, grl, bin.num=3, strand.aware=T)
+  checkEquals(s9, as(m9, "ScoreMatrix"))
+  
+  #4. test bin.num exception
+  checkException(ScoreMatrixBin(target, grl, bin.num=10, strand.aware=T),
+                 'Please remove transcripts that are shorter than bin.num',
+                 silent=TRUE)
+
+}
+
+# # ---------------------------------------------------------------------------- #
+# test for ScoreMatrixBin function
+test_ScoreMatrixBin_GRanges_GRangesList = function()
+{
+  target = RleList('c1'= Rle(c(1,1,1,2,2,2,3,3,3)),
+                   'c2'= Rle(c(10,10,10,20,20,20,30,30,30)))
+  target = as(target, 'GRanges')
+  
+  gr1 = GRanges(rep('c1',each=3), IRanges(c(1, 4, 7),width=3), strand="-")
+  gr2 = GRanges(rep('c2',each=3), IRanges(c(1, 4, 7),width=3), strand="+")
+  grl = GRangesList("transcript1" = gr1, "transcript2" = gr2)
+  
+  s11 = ScoreMatrixBin(target, grl, bin.num=3, weight.col='score')
+  m11 = matrix(c(1,2,3,10,20,30), ncol=3, byrow=T)
+  checkEquals(s11, as(m11, 'ScoreMatrix'))
+}
+
+# # ---------------------------------------------------------------------------- #
+# test for ScoreMatrixBin function
+test_ScoreMatrixBin_character_GRangesList = function()
+{
+  require(GenomicAlignments)
+  bam.file = system.file('unitTests/test.bam', package='genomation')
+  ga = as(readGAlignments(bam.file),'GRanges')
+  
+  gr1 = GRanges(rep('1',each=3), IRanges(c(1, 4, 7),width=3), strand="-")
+  gr2 = GRanges(rep('2',each=3), IRanges(c(1, 4, 7),width=3), strand="+")
+  grl = GRangesList("transcript1" = gr1, "transcript2" = gr2)
+  
+  m12 = ScoreMatrixBin(ga, grl, bin.num=3)
+  s12 = ScoreMatrixBin(bam.file, grl, type='bam', bin.num=3)
+  
+  checkEquals(s12, as(m12, "ScoreMatrix"))
+}
+

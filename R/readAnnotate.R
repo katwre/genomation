@@ -11,7 +11,13 @@
 #######################################
 
 # ---------------------------------------------------------------------------- #
-# extracts exons from a bed12 file and puts them into GRanges object
+
+#' bed12ToExons function
+#' 
+#' extracts exons from a bed12 file and puts them into GRanges object
+#'
+#' @param ref data.frame object
+#' @keywords internal
 bed12ToExons<-function(ref){
 
     ref=unique(ref)
@@ -42,7 +48,12 @@ bed12ToExons<-function(ref){
 } 
 
 # ---------------------------------------------------------------------------- #
-# extracts introns from a bed12 file and puts them into GRanges object
+#' bed12ToIntrons function
+#' 
+#' extracts introns from a bed12 file and puts them into GRanges object
+#'
+#' @param ref data.frame object
+#' @keywords internal
 bed12ToIntrons<-function(ref){
 
     #remove the genes with one exon only (they won't have any introns)
@@ -88,7 +99,13 @@ bed12ToIntrons<-function(ref){
 } 
 
 # ---------------------------------------------------------------------------- #
-# checks the validity of the bed data.frame if it is a legitimate bed columns
+#' checkBedValidity function
+#' 
+#' checks the validity of the bed data.frame if it is a legitimate bed columns
+#'
+#' @param bed.df data.frame object
+#' @param type type
+#' @keywords internal
 checkBedValidity<-function(bed.df,type="none"){
 
     # does it have at least 3 columns
@@ -98,15 +115,15 @@ checkBedValidity<-function(bed.df,type="none"){
     col1.2= (is.integer(bed.df[,2]) & is.integer(bed.df[,3]) )
 
     # does it have chr string in 1st column
-    chr= sum(grepl("chr",bed.df[,1]) )
+    #chr= sum(grepl("chr",bed.df[,1]) )
 
     if(type=="exons" | type=="introns") {
         #does it have 12>= columns
         ex=(ncol(bed.df)>=12) 
 
-        return(num.col & col1.2 & chr & ex)
+        return(num.col & col1.2 & ex)
     }
-    return(num.col & col1.2 & chr )
+    return(num.col & col1.2)
 }
 
 
@@ -351,7 +368,14 @@ setMethod("show", "AnnotationByFeature",
 #######################################
 
 # ---------------------------------------------------------------------------- #
-
+#' annotatGrWithGeneParts function
+#'
+#' @param gr target object
+#' @param prom promotors 
+#' @param exon exons
+#' @param intron introns
+#' @param strand logical
+#' @keywords internal
 annotatGrWithGeneParts <- function(gr, prom, exon, intron, strand=FALSE){
 
     if( ! strand){strand(gr)="*"}
@@ -397,6 +421,11 @@ annotatGrWithGeneParts <- function(gr, prom, exon, intron, strand=FALSE){
 }
 
 # ---------------------------------------------------------------------------- #
+#' distance2NearestFeature function
+#'
+#' @param g.idh target object
+#' @param tss TSSes
+#' @keywords internal
 distance2NearestFeature<-function(g.idh,tss){
 
     elementMetadata(g.idh) = data.frame(elementMetadata(g.idh),orig.row=1:length(g.idh))
@@ -790,7 +819,6 @@ setMethod("annotateWithFeature",
 #'         a GRangesList, a list of \code{AnnotationByFeature} objects.
 #'      
 #' @export
-#'
 #' @examples
 #' library(GenomicRanges)
 #' data(cage)

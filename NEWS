@@ -1,3 +1,128 @@
+genomation 1.11.3
+--------------
+IMPROVEMENTS AND BUG FIXES
+* fixed an error of data.table() function that occurs when GrangesList object contains unnamed windows 
+in ScoreMatrixBin() function.
+	
+genomation 1.11.2
+--------------
+IMPROVEMENTS AND BUG FIXES
+* improved the C++ function Median_c() to handle NAs 
+* the following C++ functions return NAs instead of zeros if the length of the vector is smaller than the number of bins: 
+	binMean(), binMedian(), binMax(), binMin(), binSum()
+
+NEW FUNCTIONS AND FEATURES
+C++ functions that compute a desired value from a vector and handle NAs:
+	- Mean_c() - computes a mean value, 
+	- Max_c() - computes a maximum values,
+	- Min_c() - computes a minumum values,
+	- Sum_c() - computes a sum value.
+
+genomation 1.11.1
+--------------
+IMPROVEMENTS AND BUG FIXES
+* bug fix relating to ScorematrixBin that returns all 1's when is.noCovNA=T
+	(https://github.com/BIMSBbioinfo/genomation/issues/168)
+* xcoords argument for heatMatrix and multiHeatMatrix now can take character vectors. 
+The character vectors will label the x-axis of heatmaps. Examples: xcoords=c("-2kb","0","2kb")
+
+genomation 1.9.7
+--------------
+IMPROVEMENTS AND BUG FIXES
+* bug fix relating to calculation of the last bin in scoreMatrixBin function for bin.op = "max"
+	(https://github.com/BIMSBbioinfo/genomation/issues/166)
+Implemented by Bozena Mika-Gospodorz.
+
+genomation 1.9.6
+--------------
+IMPROVEMENTS AND BUG FIXES
+* bug fix relating to calculation of the last bin in scoreMatrixBin function
+	(https://github.com/BIMSBbioinfo/genomation/issues/166)
+Implemented by Bozena Mika-Gospodorz.
+
+genomation 1.9.5
+--------------
+NEW FUNCTIONS AND FEATURES
+  * enrichmentMatrix() function computes an enrichment of IP sample over IgG or input DNA control sample
+     (issue: https://github.com/BIMSBbioinfo/genomation/issues/138)
+
+IMPROVEMENTS AND BUG FIXES
+* removed a requirement of having a 'chr' string in chromosome names in checkBedValidity() function
+	(issue: https://github.com/BIMSBbioinfo/genomation/issues/160)
+Implemented by Bozena Mika-Gospodorz.
+
+genomation 1.9.4
+--------------
+NEW FUNCTIONS AND FEATURES
+* C++ functions that create a matrix storing data with desirable number of bins for each window:
+	- listSliceMean() - calls the binMean() function,
+	- listSliceMedian() - calls the binMedian(),
+	- listSliceMax() - calls the binMax(), 
+	- listSliceMin() - calls the binMin(),
+	- listSliceSum() - calls the binSum().
+* C++ functions that compute the value for each bin:
+	- binMean() - computes a mean value,
+	- binMedian() - computes a median value, 
+	- binMax() - computes a maximum values,
+	- binMin() - computes a minumum values,
+	- binSum() - computes a sum value.
+* C++ function Median_c() - computes a median value from a vector.
+Implemented by Bozena Mika-Gospodorz.
+
+genomation 1.9.3
+--------------
+IMPROVEMENTS AND BUG FIXES
+* tests for different parameter combinations for ScoreMatrixBin
+
+
+genomation 1.9.2
+--------------
+NEW FUNCTIONS AND FEATURES
+* c() function to append a ScoreMatrix as well as a ScoreMatrixList to an existing ScoreMatrixList
+   (issue: https://github.com/BIMSBbioinfo/genomation/issues/151). Implemented by Bozena Mika-Gospodorz.
+
+IMPROVEMENTS AND BUG FIXES
+* added a slot "names" to a ScoreMatrixList class
+   
+genomation 1.9.1
+--------------
+IMPROVEMENTS AND BUG FIXES
+* The knitrBootstrap dependecy is removed and following issues are fixed
+   - https://github.com/BIMSBbioinfo/genomation/issues/135
+   - https://github.com/BIMSBbioinfo/genomation/issues/146
+   - https://github.com/BIMSBbioinfo/genomation/issues/147
+
+genomation 1.7.3
+--------------
+IMPROVEMENTS AND BUG FIXES
+* added OS check for tests involving BigWig files. They can not be read in
+  windows OS.
+
+
+genomation 1.7.2
+--------------
+IMPROVEMENTS AND BUG FIXES
+* Now we rely on Rsamtools idxStatsBam function to calculate rpm, previously it was a cpp function 
+  written by alexg9010.
+
+genomation 1.7.1
+--------------
+NEW FUNCTIONS AND FEATURES
+* scoreMatrixBin() calculates coverage over windows that are not only
+  GRanges, but also GRangesList. It's usefull for calculating transcript
+  coverage of a set of exons.
+* ScoreMatrix-like functions work with bigWig files
+  and supplied weight.col and is.noCovNA=TRUE
+  
+IMPROVEMENTS AND BUG FIXES
+* Added warning for rpm=TRUE and type='bigWig'
+* type='auto' by default in ScoreMatrix-like functions 
+* narrowPeak() and broadPeak() are 0-based by default (#144 fixed)
+* Fixed error in readGeneric when reading files with numeric chromosomes (#133 fixed)
+* Show warning if windows fall off target 
+* Show error if windows have width 1
+
+
 genomation 1.5.6
 --------------
 NEW FUNCTIONS AND FEATURES
@@ -379,4 +504,3 @@ genomation 0.2.1
 IMPROVEMENTS AND BUG FIXES
 
 * scoreMatrixBin should work now correctly with modRleList objects
-
